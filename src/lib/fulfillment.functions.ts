@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getOnboardingProgress, isWarehouseComplete } from "@/lib/onboarding";
+import { INBOX_STATUSES } from "@/lib/order-status";
+
+const orderListSelect =
+  "id, order_number, tiktok_order_id, status, customer_name, total, tracking_code, shipping_label_url, created_at" as const;
+
+const orderFilterSchema = z
+  .object({
+    status: z.enum(["inbox", "awaiting_shipment", "label_generated", "shipped", "all"]).optional(),
+    search: z.string().max(120).optional(),
+    limit: z.number().int().min(1).max(200).optional(),
+  })
+  .optional();
 
 // ---------- Brand / Warehouse ----------
 
@@ -42,6 +55,18 @@ export const updateWarehouse = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getOnboardingStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("brands")
+      .select("tiktok_shop_id, warehouse_address")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return getOnboardingProgress(data);
+  });
+
 // ---------- Dashboard ----------
 
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -71,6 +96,52 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       pending: pending.count ?? 0,
       gmvWeek,
       lowStock: lowStock.count ?? 0,
+    };
+  });
+
+export const listUrgentOrders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: brand } = await supabase.from("brands").select("id").eq("user_id", userId).maybeSingle();
+    if (!brand) return [];
+    const { data, error } = await supabase
+      .from("orders")
+      .select(orderListSelect)
+      .eq("brand_id", brand.id)
+      .in("status", [...INBOX_STATUSES])
+      .order("created_at", { ascending: true })
+      .limit(10);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const getIntegrationHealth = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: brand } = await supabase.from("brands").select("id").eq("user_id", userId).maybeSingle();
+    if (!brand) return { lastWebhook: null, lastSync: null };
+    const [webhook, sync] = await Promise.all([
+      supabase
+        .from("sync_logs")
+        .select("created_at, status, message")
+        .eq("brand_id", brand.id)
+        .eq("type", "tiktok_order_webhook")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("sync_logs")
+        .select("created_at, status, message, type")
+        .eq("brand_id", brand.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    return {
+      lastWebhook: webhook.data,
+      lastSync: sync.data,
     };
   });
 
@@ -132,23 +203,57 @@ export const deleteProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateProductStock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), stock: z.number().int().min(0) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("products").update({ stock: data.stock }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ---------- Orders ----------
 
 export const listOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) => orderFilterSchema.parse(d ?? {}))
+  .handler(async ({ data: filters, context }) => {
     const { supabase, userId } = context;
-    const { data: brand } = await supabase
-      .from("brands").select("id").eq("user_id", userId).maybeSingle();
+    const { data: brand } = await supabase.from("brands").select("id").eq("user_id", userId).maybeSingle();
     if (!brand) return [];
-    const { data, error } = await supabase
+    let q = supabase
       .from("orders")
-      .select("id, order_number, tiktok_order_id, status, customer_name, total, tracking_code, created_at")
-      .eq("brand_id", brand.id)
-      .order("created_at", { ascending: false })
-      .limit(200);
+      .select(orderListSelect)
+      .eq("brand_id", brand.id);
+
+    const status = filters?.status ?? "all";
+    if (status === "inbox") {
+      q = q.in("status", [...INBOX_STATUSES]);
+    } else if (status !== "all") {
+      q = q.eq("status", status);
+    }
+
+    const fifo = status === "inbox" || status === "awaiting_shipment";
+    const { data, error } = await q
+      .order("created_at", { ascending: fifo })
+      .limit(filters?.limit ?? 200);
     if (error) throw new Error(error.message);
-    return data ?? [];
+
+    const search = filters?.search?.trim().toLowerCase();
+    if (!search) return data ?? [];
+
+    return (data ?? []).filter((o) => {
+      const hay = [
+        o.order_number,
+        o.tiktok_order_id,
+        o.customer_name,
+        o.tracking_code,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(search);
+    });
   });
 
 export const getOrder = createServerFn({ method: "GET" })
@@ -159,6 +264,94 @@ export const getOrder = createServerFn({ method: "GET" })
       .from("orders").select("*").eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
     return row;
+  });
+
+export const getOrderTimeline = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ orderId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: order } = await context.supabase
+      .from("orders")
+      .select("brand_id, created_at, status, shipped_at")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (!order) return [];
+
+    const { data: logs, error } = await context.supabase
+      .from("sync_logs")
+      .select("id, type, status, message, created_at")
+      .eq("order_id", data.orderId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+
+    const events: Array<{ id: string; label: string; at: string; detail?: string }> = [
+      {
+        id: "created",
+        label: "Pedido recebido",
+        at: order.created_at,
+      },
+    ];
+    for (const log of logs ?? []) {
+      events.push({
+        id: log.id,
+        label: log.message ?? log.type,
+        at: log.created_at,
+        detail: log.status,
+      });
+    }
+    if (order.shipped_at) {
+      events.push({
+        id: "shipped",
+        label: "Marcado como enviado",
+        at: order.shipped_at,
+      });
+    }
+    return events.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+  });
+
+export const createTestOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: brand } = await supabase.from("brands").select("id").eq("user_id", userId).maybeSingle();
+    if (!brand) throw new Error("Marca não encontrada");
+
+    const testId = `TEST-${Date.now()}`;
+    const { data: order, error } = await supabase
+      .from("orders")
+      .insert({
+        brand_id: brand.id,
+        tiktok_order_id: testId,
+        order_number: testId,
+        status: "awaiting_shipment",
+        customer_name: "Cliente de teste",
+        customer_email: "teste@fulfillly.app",
+        shipping_address: {
+          street: "Rua Exemplo",
+          number: "100",
+          district: "Centro",
+          city: "São Paulo",
+          state: "SP",
+          postal_code: "01310100",
+        },
+        items: [{ sku: "DEMO-001", title: "Produto de demonstração", qty: 1, price: 99.9 }],
+        subtotal: 99.9,
+        shipping_cost: 15,
+        total: 114.9,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await supabase.from("sync_logs").insert({
+      brand_id: brand.id,
+      order_id: order.id,
+      type: "tiktok_order_webhook",
+      status: "success",
+      message: "Pedido de teste criado manualmente",
+    });
+
+    return { id: order.id };
   });
 
 const shipSchema = z.object({
@@ -179,14 +372,20 @@ export const markOrderShipped = createServerFn({ method: "POST" })
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
 
-    // Best-effort log
+    const { data: order } = await context.supabase
+      .from("orders")
+      .select("brand_id")
+      .eq("id", data.id)
+      .maybeSingle();
+
     await context.supabase.from("sync_logs").insert({
+      brand_id: order?.brand_id ?? null,
       order_id: data.id,
       type: "tiktok_rts",
       status: "pending",
-      message: `Marcado como enviado via ${data.carrier} — código ${data.tracking_code}`,
+      message: `Enviado localmente via ${data.carrier} — rastreio ${data.tracking_code}. Sincronização com TikTok pendente.`,
     });
-    return { ok: true };
+    return { ok: true, tiktokSynced: false };
   });
 
 // ---------- Label (Melhor Envio placeholder) ----------
@@ -195,6 +394,15 @@ export const generateLabel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: brand } = await context.supabase
+      .from("brands")
+      .select("warehouse_address")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!isWarehouseComplete(brand?.warehouse_address)) {
+      throw new Error("Configure o endereço do armazém em Configurações antes de gerar etiquetas.");
+    }
+
     const token = process.env.MELHOR_ENVIO_TOKEN;
     if (!token) {
       throw new Error(
@@ -202,10 +410,24 @@ export const generateLabel = createServerFn({ method: "POST" })
       );
     }
     // Stub: produção real exigiria cotar + comprar + imprimir via API Melhor Envio.
+    const { data: order } = await context.supabase
+      .from("orders")
+      .select("brand_id")
+      .eq("id", data.id)
+      .maybeSingle();
+
     const { error } = await context.supabase.from("orders").update({
       status: "label_generated",
       shipping_label_url: `https://melhorenvio.example/label/${data.id}.pdf`,
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    await context.supabase.from("sync_logs").insert({
+      brand_id: order?.brand_id ?? null,
+      order_id: data.id,
+      type: "melhor_envio_label",
+      status: "success",
+      message: "Etiqueta gerada (sandbox)",
+    });
     return { ok: true };
   });

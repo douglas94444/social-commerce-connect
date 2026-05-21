@@ -6,43 +6,42 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/for-brands")({
   head: () => ({
     meta: [
-      { title: "Para Marcas — FulFillly" },
+      { title: "Como funciona — FulFillly" },
       {
         name: "description",
         content:
-          "Sincronize seu catálogo com o TikTok Shop, gerencie estoque, aprove criadores e deixe a FulFillly enviar cada pedido. Feito para marcas escalando no social.",
+          "Fulfillment TikTok Shop: conecte a loja, receba pedidos, gere etiquetas Melhor Envio e confirme envio com rastreio.",
       },
-      { property: "og:title", content: "Para Marcas — FulFillly" },
+      { property: "og:title", content: "Como funciona — FulFillly" },
     ],
   }),
   component: ForBrands,
 });
 
 const features = [
-  "Sincronização de catálogo e variantes entre marketplaces",
-  "Estoque multi-armazém com alertas de baixo estoque",
-  "Marketplace de criadores com comissões personalizadas",
-  "Webhook de pedidos em tempo real do TikTok Shop",
-  "Etiquetas e rastreio gerados automaticamente",
-  "Dashboards de GMV, ticket médio e SLA",
+  "Conexão OAuth com TikTok Shop Partner",
+  "Webhook de pedidos em tempo real",
+  "Fila operacional com prioridade FIFO",
+  "Importação de catálogo e sync de estoque",
+  "Etiquetas via Melhor Envio (Brasil)",
+  "Confirmação de envio com rastreio no TikTok",
 ];
 
 function ForBrands() {
   return (
     <SiteShell>
       <section className="mx-auto max-w-5xl px-6 py-24">
-        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-brand">Para Marcas</p>
+        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-brand">Para marcas TikTok Shop</p>
         <h1 className="max-w-3xl text-balance text-5xl md:text-7xl">
-          Rode sua operação de social commerce <span className="italic text-primary">no piloto automático.</span>
+          Fulfillment que <span className="italic text-primary">acompanha suas vendas.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          Suba seu catálogo uma única vez. A gente envia para o TikTok Shop, segura seu estoque,
-          encaminha cada pedido para o fulfillment e paga seus criadores — enquanto você foca na
-          marca.
+          A FulFillly recebe cada pedido do TikTok Shop, guia sua equipe na geração de etiquetas e
+          devolve o rastreio à plataforma — para você focar em vender, não em planilhas.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button size="lg" asChild>
-            <Link to="/signup">Começar grátis</Link>
+            <Link to="/signup">Começar fulfillment</Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
             <Link to="/pricing">Ver preços</Link>

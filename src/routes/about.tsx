@@ -8,7 +8,7 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "A FulFillly está construindo o sistema operacional do social commerce — conectando marcas, criadores, fulfillment e TikTok Shop.",
+          "A FulFillly é fulfillment para TikTok Shop — pedidos, etiquetas e rastreio num só painel.",
       },
     ],
   }),
@@ -21,24 +21,19 @@ function About() {
       <section className="mx-auto max-w-3xl px-6 py-24">
         <p className="mb-3 font-mono text-xs uppercase tracking-widest text-primary">Sobre</p>
         <h1 className="text-5xl md:text-6xl">
-          Conectamos o que o social commerce <span className="italic">deixou desconectado.</span>
+          Fulfillment feito para o <span className="italic">TikTok Shop.</span>
         </h1>
         <div className="mt-10 space-y-6 text-lg text-muted-foreground">
           <p>
-            Marcas têm estoque. Criadores têm audiência. O TikTok tem os compradores. Mas a
-            infraestrutura que une tudo isso — logística, atribuição, repasses — é uma bagunça de
-            planilhas, DMs e integrações de uma vez só.
+            Marcas que vendem no TikTok Shop precisam enviar rápido — sem perder pedidos em
+            planilhas ou atrasar o SLA da plataforma.
           </p>
           <p>
-            A FulFillly é o sistema operacional desse fluxo. Damos às marcas um catálogo que pode
-            ser enviado para qualquer lugar, aos criadores um marketplace transparente, aos
-            parceiros de fulfillment uma fila limpa e ao TikTok Shop um parceiro que entrega no
-            prazo.
+            A FulFillly conecta sua loja, recebe pedidos via webhook, guia a geração de etiquetas
+            (Melhor Envio) e devolve o rastreio ao TikTok. Um painel, um fluxo, foco em operação.
           </p>
           <p>
-            Estamos construindo os trilhos para uma nova geração de comércio. Fundadores vindos de
-            logística, marketplaces e ferramentas para criadores. Sede no Brasil, pensado para o
-            mundo.
+            Estamos em beta privado no Brasil, construindo com marcas que escalam no social commerce.
           </p>
         </div>
       </section>

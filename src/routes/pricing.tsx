@@ -10,7 +10,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Preços transparentes para marcas e criadores. Grátis durante o beta privado. SaaS em planos + taxas de fulfillment e comissão.",
+          "Planos por volume de pedidos no TikTok Shop. Fulfillment e etiquetas cobrados por transação.",
       },
     ],
   }),
@@ -22,37 +22,45 @@ const plans = [
     name: "Starter",
     price: "Grátis",
     sub: "durante o beta privado",
-    features: ["Até 50 SKUs", "1 TikTok Shop", "Analytics básico", "Suporte por e-mail"],
-    cta: "Começar grátis",
+    features: [
+      "Até 100 pedidos/mês",
+      "1 TikTok Shop",
+      "Webhook de pedidos",
+      "Suporte por e-mail",
+    ],
+    cta: "Começar fulfillment",
     highlight: false,
+    href: "/signup" as const,
   },
   {
-    name: "Growth",
-    price: "R$ 499",
+    name: "Pro",
+    price: "R$ 299",
     sub: "/ mês",
     features: [
-      "SKUs ilimitados",
-      "Todos os marketplaces",
-      "Marketplace de criadores",
-      "Fulfillment prioritário",
-      "Repasses via Stripe Connect",
+      "Até 1.000 pedidos/mês",
+      "Melhor Envio integrado",
+      "Etiquetas em lote",
+      "Relatórios de SLA",
+      "Suporte prioritário",
     ],
     cta: "Falar com vendas",
     highlight: true,
+    href: "/contact" as const,
   },
   {
-    name: "Enterprise",
+    name: "Scale",
     price: "Custom",
-    sub: "para marcas escalando",
+    sub: "alto volume",
     features: [
-      "CSM dedicado",
+      "Pedidos ilimitados",
       "Multi-armazém",
-      "Portal de criadores white-label",
-      "Acesso à API e SLA",
-      "Integrações sob medida",
+      "API e webhooks dedicados",
+      "CSM dedicado",
+      "SLA contratual",
     ],
     cta: "Fale com a gente",
     highlight: false,
+    href: "/contact" as const,
   },
 ];
 
@@ -62,10 +70,10 @@ function Pricing() {
       <section className="mx-auto max-w-6xl px-6 py-24">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-5xl md:text-6xl">
-            Preços que <span className="italic text-primary">escalam com você.</span>
+            Preços para <span className="italic text-primary">fulfillment TikTok Shop.</span>
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Planos para a camada SaaS. Fulfillment e comissões cobrados por transação.
+            Software por plano. Etiquetas e frete cobrados conforme uso no Melhor Envio.
           </p>
         </div>
 
@@ -74,9 +82,7 @@ function Pricing() {
             <div
               key={p.name}
               className={`relative rounded-3xl border bg-card p-8 ${
-                p.highlight
-                  ? "border-primary shadow-glow"
-                  : "border-border"
+                p.highlight ? "border-primary shadow-glow" : "border-border"
               }`}
             >
               {p.highlight && (
@@ -96,7 +102,7 @@ function Pricing() {
                 variant={p.highlight ? "default" : "outline"}
                 asChild
               >
-                <Link to={p.highlight ? "/contact" : "/signup"}>{p.cta}</Link>
+                <Link to={p.href}>{p.cta}</Link>
               </Button>
               <ul className="mt-8 space-y-3">
                 {p.features.map((f) => (

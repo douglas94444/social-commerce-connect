@@ -5,8 +5,7 @@ const cols = [
   {
     title: "Produto",
     links: [
-      { to: "/for-brands", label: "Para Marcas" },
-      { to: "/for-creators", label: "Para Criadores" },
+      { to: "/for-brands", label: "Como funciona" },
       { to: "/pricing", label: "Preços" },
     ],
   },
@@ -33,8 +32,7 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm text-muted-foreground">
-            O sistema operacional do social commerce. Conectamos marcas, criadores e fulfillment num
-            só fluxo — feito para o TikTok Shop e além.
+            Fulfillment para TikTok Shop. Pedidos, etiquetas Melhor Envio e rastreio num só fluxo.
           </p>
         </div>
 
@@ -63,8 +61,8 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} FulFillly. Movendo o social commerce.</p>
-          <p className="font-mono">v0.1 · MVP</p>
+          <p>© {new Date().getFullYear()} FulFillly. Fulfillment TikTok Shop.</p>
+          <p className="font-mono">v0.2 · Fulfillment</p>
         </div>
       </div>
     </footer>

@@ -75,11 +75,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FulFillly — Social commerce, entregue" },
+      { title: "FulFillly — Fulfillment para TikTok Shop" },
       {
         name: "description",
         content:
-          "A FulFillly é o sistema operacional do social commerce. Marcas, criadores, fulfillment e TikTok Shop num único fluxo.",
+          "Fulfillment para TikTok Shop: pedidos, etiquetas Melhor Envio e rastreio num só painel.",
       },
       { name: "author", content: "FulFillly" },
       { property: "og:type", content: "website" },

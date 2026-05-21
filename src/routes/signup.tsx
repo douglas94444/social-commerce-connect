@@ -36,7 +36,7 @@ function SignupPage() {
       return;
     }
     toast.success("Conta criada. Bem-vindo à FulFillly!");
-    navigate({ to: "/app" });
+    navigate({ to: "/app/onboarding" });
   }
 
   return (

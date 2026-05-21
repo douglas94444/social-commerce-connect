@@ -1,60 +1,53 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingCart, Settings as SettingsIcon, LogOut } from "lucide-react";
-import { Logo } from "@/components/site/Logo";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Navigate, Outlet, useLocation } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { AppSidebar } from "@/components/app/AppSidebar";
+import { OnboardingBanner } from "@/components/app/OnboardingBanner";
+import { OrderNotifications } from "@/components/app/OrderNotifications";
+import { getOnboardingStatus } from "@/lib/fulfillment.functions";
+import { isOnboardingExemptPath } from "@/lib/onboarding";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({ meta: [{ title: "Painel — FulFillly" }] }),
   component: AppLayout,
 });
 
-const nav = [
-  { to: "/app", label: "Painel", icon: LayoutDashboard, exact: true },
-  { to: "/app/products", label: "Produtos", icon: Package, exact: false },
-  { to: "/app/orders", label: "Pedidos", icon: ShoppingCart, exact: false },
-  { to: "/app/settings", label: "Configurações", icon: SettingsIcon, exact: false },
-] as const;
+function OnboardingGate({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const fetchStatus = useServerFn(getOnboardingStatus);
+  const { data, isLoading } = useQuery({
+    queryKey: ["onboarding-status"],
+    queryFn: () => fetchStatus(),
+  });
 
-function AppLayout() {
-  const navigate = useNavigate();
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
   }
 
-  return (
-    <div className="grid min-h-screen grid-cols-[260px_1fr] bg-muted/20">
-      <aside className="flex flex-col border-r border-border bg-background">
-        <div className="border-b border-border px-6 py-5">
-          <Logo />
-        </div>
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {nav.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.exact }}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeProps={{ className: "bg-muted text-foreground" }}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="border-t border-border p-3">
-          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </Button>
-        </div>
-      </aside>
+  if (data && !data.requiredComplete && !isOnboardingExemptPath(location.pathname)) {
+    return <Navigate to="/app/onboarding" replace />;
+  }
 
-      <main className="overflow-x-hidden">
-        <Outlet />
-      </main>
-    </div>
+  return <>{children}</>;
+}
+
+function AppLayout() {
+  return (
+    <OnboardingGate>
+      <div className="flex min-h-screen bg-muted/20">
+        <AppSidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <OnboardingBanner />
+          <OrderNotifications />
+          <main className="flex-1 overflow-x-hidden">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </OnboardingGate>
   );
 }
