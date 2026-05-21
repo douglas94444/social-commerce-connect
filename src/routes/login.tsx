@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Log in — FulFillly" }] }),
+  head: () => ({ meta: [{ title: "Entrar — FulFillly" }] }),
   component: LoginPage,
 });
 
@@ -33,14 +33,14 @@ function LoginPage() {
   return (
     <SiteShell>
       <section className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-        <h1 className="font-display text-4xl">Welcome back</h1>
+        <h1 className="font-display text-4xl">Bem-vindo de volta</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sign in to your FulFillly brand dashboard.
+          Entre no seu painel de marca FulFillly.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
@@ -51,7 +51,7 @@ function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -62,14 +62,14 @@ function LoginPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Entrando…" : "Entrar"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          New here?{" "}
+          Novo por aqui?{" "}
           <Link to="/signup" className="text-foreground underline-offset-4 hover:underline">
-            Create an account
+            Criar uma conta
           </Link>
         </p>
       </section>

@@ -8,10 +8,10 @@ export const Route = createFileRoute("/_authenticated/app/")({
 });
 
 const stats = [
-  { label: "Orders today", value: "0", icon: ShoppingCart },
-  { label: "Pending fulfillment", value: "0", icon: Package },
-  { label: "GMV this week", value: "$0", icon: TrendingUp },
-  { label: "Low stock SKUs", value: "0", icon: AlertTriangle },
+  { label: "Pedidos hoje", value: "0", icon: ShoppingCart },
+  { label: "Fulfillment pendente", value: "0", icon: Package },
+  { label: "GMV da semana", value: "R$ 0", icon: TrendingUp },
+  { label: "SKUs em baixo estoque", value: "0", icon: AlertTriangle },
 ];
 
 function DashboardPage() {
@@ -19,14 +19,14 @@ function DashboardPage() {
     <div className="mx-auto max-w-6xl space-y-8 px-8 py-10">
       <header className="flex items-start justify-between gap-6">
         <div>
-          <h1 className="font-display text-4xl">Welcome to FulFillly</h1>
+          <h1 className="font-display text-4xl">Bem-vindo à FulFillly</h1>
           <p className="mt-2 text-muted-foreground">
-            Your TikTok Shop fulfillment cockpit. Connect your shop to start receiving orders.
+            Seu cockpit de fulfillment para o TikTok Shop. Conecte sua loja para começar a receber pedidos.
           </p>
         </div>
         <Button asChild>
           <Link to="/app/settings">
-            Connect TikTok Shop <ArrowRight className="ml-2 h-4 w-4" />
+            Conectar TikTok Shop <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </header>
@@ -44,16 +44,16 @@ function DashboardPage() {
       </div>
 
       <Card className="p-8">
-        <h2 className="font-display text-2xl">Get set up in 3 steps</h2>
+        <h2 className="font-display text-2xl">Configure em 3 passos</h2>
         <ol className="mt-6 space-y-4 text-sm">
           <li className="flex gap-4">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
               1
             </span>
             <div>
-              <p className="font-medium">Connect your TikTok Shop</p>
+              <p className="font-medium">Conecte seu TikTok Shop</p>
               <p className="mt-1 text-muted-foreground">
-                Authorize FulFillly and we'll import your catalog automatically.
+                Autorize a FulFillly e importamos seu catálogo automaticamente.
               </p>
             </div>
           </li>
@@ -62,9 +62,9 @@ function DashboardPage() {
               2
             </span>
             <div>
-              <p className="font-medium">Set your warehouse address</p>
+              <p className="font-medium">Defina o endereço do seu armazém</p>
               <p className="mt-1 text-muted-foreground">
-                Used to calculate shipping and generate labels.
+                Usado para calcular o frete e gerar as etiquetas.
               </p>
             </div>
           </li>
@@ -73,9 +73,9 @@ function DashboardPage() {
               3
             </span>
             <div>
-              <p className="font-medium">Receive your first order</p>
+              <p className="font-medium">Receba seu primeiro pedido</p>
               <p className="mt-1 text-muted-foreground">
-                Orders arrive via webhook — generate a label, mark as shipped, done.
+                Os pedidos chegam via webhook — gere a etiqueta, marque como enviado, pronto.
               </p>
             </div>
           </li>

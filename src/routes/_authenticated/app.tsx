@@ -5,15 +5,15 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/app")({
-  head: () => ({ meta: [{ title: "Dashboard — FulFillly" }] }),
+  head: () => ({ meta: [{ title: "Painel — FulFillly" }] }),
   component: AppLayout,
 });
 
 const nav = [
-  { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/app/products", label: "Products", icon: Package, exact: false },
-  { to: "/app/orders", label: "Orders", icon: ShoppingCart, exact: false },
-  { to: "/app/settings", label: "Settings", icon: SettingsIcon, exact: false },
+  { to: "/app", label: "Painel", icon: LayoutDashboard, exact: true },
+  { to: "/app/products", label: "Produtos", icon: Package, exact: false },
+  { to: "/app/orders", label: "Pedidos", icon: ShoppingCart, exact: false },
+  { to: "/app/settings", label: "Configurações", icon: SettingsIcon, exact: false },
 ] as const;
 
 function AppLayout() {
@@ -47,7 +47,7 @@ function AppLayout() {
         <div className="border-t border-border p-3">
           <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>
             <LogOut className="mr-2 h-4 w-4" />
-            Sign out
+            Sair
           </Button>
         </div>
       </aside>

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Sign up — FulFillly" }] }),
+  head: () => ({ meta: [{ title: "Criar conta — FulFillly" }] }),
   component: SignupPage,
 });
 
@@ -35,21 +35,21 @@ function SignupPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account created. Welcome to FulFillly!");
+    toast.success("Conta criada. Bem-vindo à FulFillly!");
     navigate({ to: "/app" });
   }
 
   return (
     <SiteShell>
       <section className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-        <h1 className="font-display text-4xl">Create your brand account</h1>
+        <h1 className="font-display text-4xl">Crie sua conta de marca</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Connect TikTok Shop, automate fulfillment, ship faster.
+          Conecte o TikTok Shop, automatize o fulfillment, envie mais rápido.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="brandName">Brand name</Label>
+            <Label htmlFor="brandName">Nome da marca</Label>
             <Input
               id="brandName"
               required
@@ -59,7 +59,7 @@ function SignupPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
@@ -70,7 +70,7 @@ function SignupPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -80,17 +80,17 @@ function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+            <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres.</p>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account…" : "Create account"}
+            {loading ? "Criando conta…" : "Criar conta"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have one?{" "}
+          Já tem conta?{" "}
           <Link to="/login" className="text-foreground underline-offset-4 hover:underline">
-            Sign in
+            Entrar
           </Link>
         </p>
       </section>
