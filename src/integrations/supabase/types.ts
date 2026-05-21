@@ -56,6 +56,208 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          brand_id: string
+          carrier: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          delivered_at: string | null
+          id: string
+          items: Json
+          melhor_envio_order_id: string | null
+          order_number: string | null
+          raw_payload: Json | null
+          shipped_at: string | null
+          shipping_address: Json
+          shipping_cost: number
+          shipping_label_url: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          tiktok_order_id: string
+          total: number
+          tracking_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          carrier?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          delivered_at?: string | null
+          id?: string
+          items?: Json
+          melhor_envio_order_id?: string | null
+          order_number?: string | null
+          raw_payload?: Json | null
+          shipped_at?: string | null
+          shipping_address: Json
+          shipping_cost?: number
+          shipping_label_url?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          tiktok_order_id: string
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          carrier?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          delivered_at?: string | null
+          id?: string
+          items?: Json
+          melhor_envio_order_id?: string | null
+          order_number?: string | null
+          raw_payload?: Json | null
+          shipped_at?: string | null
+          shipping_address?: Json
+          shipping_cost?: number
+          shipping_label_url?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          tiktok_order_id?: string
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          brand_id: string
+          created_at: string
+          description: string | null
+          height_cm: number
+          id: string
+          image_url: string | null
+          last_synced_at: string | null
+          length_cm: number
+          price: number
+          sku: string
+          stock: number
+          tiktok_product_id: string | null
+          title: string
+          updated_at: string
+          weight_grams: number
+          width_cm: number
+        }
+        Insert: {
+          active?: boolean
+          brand_id: string
+          created_at?: string
+          description?: string | null
+          height_cm?: number
+          id?: string
+          image_url?: string | null
+          last_synced_at?: string | null
+          length_cm?: number
+          price?: number
+          sku: string
+          stock?: number
+          tiktok_product_id?: string | null
+          title: string
+          updated_at?: string
+          weight_grams?: number
+          width_cm?: number
+        }
+        Update: {
+          active?: boolean
+          brand_id?: string
+          created_at?: string
+          description?: string | null
+          height_cm?: number
+          id?: string
+          image_url?: string | null
+          last_synced_at?: string | null
+          length_cm?: number
+          price?: number
+          sku?: string
+          stock?: number
+          tiktok_product_id?: string | null
+          title?: string
+          updated_at?: string
+          weight_grams?: number
+          width_cm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_logs: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          message: string | null
+          order_id: string | null
+          payload: Json | null
+          status: Database["public"]["Enums"]["sync_log_status"]
+          type: Database["public"]["Enums"]["sync_log_type"]
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          message?: string | null
+          order_id?: string | null
+          payload?: Json | null
+          status: Database["public"]["Enums"]["sync_log_status"]
+          type: Database["public"]["Enums"]["sync_log_type"]
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          message?: string | null
+          order_id?: string | null
+          payload?: Json | null
+          status?: Database["public"]["Enums"]["sync_log_status"]
+          type?: Database["public"]["Enums"]["sync_log_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -92,6 +294,24 @@ export type Database = {
     }
     Enums: {
       app_role: "brand_owner" | "admin"
+      order_status:
+        | "pending"
+        | "awaiting_shipment"
+        | "label_generated"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+        | "failed"
+      sync_log_status: "success" | "error" | "pending"
+      sync_log_type:
+        | "tiktok_oauth"
+        | "tiktok_product_sync"
+        | "tiktok_stock_sync"
+        | "tiktok_order_webhook"
+        | "tiktok_rts"
+        | "melhor_envio_quote"
+        | "melhor_envio_label"
+        | "email_notification"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -220,6 +440,26 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["brand_owner", "admin"],
+      order_status: [
+        "pending",
+        "awaiting_shipment",
+        "label_generated",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "failed",
+      ],
+      sync_log_status: ["success", "error", "pending"],
+      sync_log_type: [
+        "tiktok_oauth",
+        "tiktok_product_sync",
+        "tiktok_stock_sync",
+        "tiktok_order_webhook",
+        "tiktok_rts",
+        "melhor_envio_quote",
+        "melhor_envio_label",
+        "email_notification",
+      ],
     },
   },
 } as const
