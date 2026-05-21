@@ -1,139 +1,114 @@
+# FulFillly — Refoco em TikTok Shop Fulfillment
 
-# FulFillly — Plano de Construção
+Pivot do plano anterior (B2B2C com creators) para um SaaS focado: **marcas conectam TikTok Shop, recebem pedidos, geram etiquetas e atualizam tracking — só isso**. Sem creator marketplace, sem comissões, sem multi-marketplace.
 
-Plataforma B2B2C que conecta Brands, Creators, Fulfillment e TikTok Shop. A spec original assume Next.js/Prisma/Redis/BullMQ/Vercel; este projeto roda em **TanStack Start v1 + Lovable Cloud (Supabase) + Cloudflare Workers**. O plano abaixo preserva 100% do produto, traduzindo apenas a stack.
+## O que muda vs. plano anterior
 
-## Tradução de stack (uma vez só)
+**Removido:** Creator dashboard, applications, campaigns, earnings, Stripe Connect payouts, multi-marketplace, admin global, kanban de fulfillment colaborativo.
 
-| Spec original | Equivalente neste projeto |
-|---|---|
-| Next.js App Router / `app/api/.../route.ts` | TanStack Start, rotas em `src/routes/`, server routes em `src/routes/api/` |
-| Server Actions (`"use server"`) | `createServerFn` em `src/lib/*.functions.ts` |
-| Prisma + `npx prisma db push` | Migrations SQL geridas pelo Lovable Cloud + tipos gerados |
-| Supabase Auth direto | Lovable Cloud Auth (mesmo Supabase, wrapper) — Email/senha + Google via broker |
-| RBAC por checagem em código | Tabela `user_roles` + função `has_role()` security-definer + RLS por tenant (`brand_id` / `creator_id`) |
-| BullMQ + Redis (jobs) | `pg_cron` no Postgres chamando endpoints `/api/public/jobs/*` com HMAC |
-| Webhooks (`/api/webhooks/tiktok`) | Server route `src/routes/api/public/webhooks/tiktok.ts` com verificação de assinatura |
-| TikTok Shop API direto | Conector **TikTok** do Lovable via `connector-gateway.lovable.dev/tiktok/*` (gateway lida com OAuth refresh) |
-| Stripe Connect | Integração Stripe via secret `STRIPE_SECRET_KEY` + server functions |
-| Resend (e-mail) | Conector **Resend** |
-| Cloudflare R2 / Supabase Storage | Supabase Storage (já incluso no Cloud) |
-| `globalThis` / in-memory state | Sempre persistir em Postgres (Workers são stateless) |
+**Mantido:** Landing pública (já feita na Fase 0), auth, brand dashboard, integração TikTok, schema de pedidos, geração de etiqueta, webhooks.
 
-Branding: **FulFillly**. Paleta inspirada no brief (vermelho TikTok + ciano), mas vamos refinar com tokens semânticos em `src/styles.css` (oklch), nunca cores hard-coded em componentes.
+**Adicionado/foco:** Onboarding TikTok OAuth em 5 min, importação automática de produtos, Melhor Envio (etiquetas BR), email de "novo pedido" via Resend.
 
-## Fase 0 — Fundação visual e marca (sem Cloud)
+## Stack (igual ao já decidido)
 
-- Definir tokens em `src/styles.css`: paleta FulFillly (primary vermelho, secondary ciano, accents por persona: brand=indigo, creator=purple, fulfillment=amber, admin=neutral), tipografia (par display + body distintivo, evitar Inter genérico), raios, sombras, gradientes.
-- Substituir o placeholder em `src/routes/index.tsx` por **landing page real** do FulFillly: hero, como funciona (Brand → Fulfillment → Creator → TikTok → Customer), revenue streams, prova social, CTA waitlist.
-- Rotas públicas adicionais: `/about`, `/for-brands`, `/for-creators`, `/pricing`, `/contact`. Cada uma com `head()` próprio (title/description/og).
-- Componentes shadcn já estão instalados — vamos usar e estilizar via variantes, não sobrescrever inline.
-- Header/Footer compartilhados, com links pra `/login` e `/signup`.
+TanStack Start + Lovable Cloud (Supabase) + Cloudflare Workers. TikTok via gateway Lovable, Melhor Envio via fetch direto + secret, Resend via conector. `pg_cron` para refresh de token e polling de fallback. Webhooks em `src/routes/api/public/webhooks/tiktok.ts` com HMAC.
 
-**Entregável:** site público do FulFillly navegável. **Não precisa de Cloud.**
+## Fases
 
-## Fase 1 — Auth, roles e tenancy (precisa de Cloud)
+### Fase 1 — Auth simples (1 persona: brand)
+- Enum `app_role`: só `brand_owner` e `admin` (drop creator/fulfillment).
+- Tabelas: `user_roles`, função `has_role`, tabela `brands` (com colunas TikTok já previstas).
+- Trigger `handle_new_user` cria `brand` automaticamente no signup.
+- `/login`, `/signup` (sem seletor de persona — todo signup = brand).
+- Google via broker Lovable + `configure_social_auth`.
+- `attachSupabaseAuth` em `src/start.ts`.
+- Layout `_authenticated.tsx` com `beforeLoad` redirect.
 
-- Migration: enum `app_role` (`brand_owner`, `brand_member`, `creator`, `admin`, `fulfillment_operator`), tabela `user_roles`, função `has_role(uuid, app_role)` security-definer.
-- Tabelas `brands` e `creators` (tenant roots) com `user_id` FK pra `auth.users`, RLS scoped por `auth.uid()`.
-- Trigger `handle_new_user` cria registro mínimo em `brands` ou `creators` conforme role escolhido no signup.
-- Páginas: `/login`, `/signup` (com seletor "Sou marca / Sou creator"), `/onboarding/brand`, `/onboarding/creator`.
-- Auth: email/senha + Google (via broker Lovable — `lovable.auth.signInWithOAuth("google", ...)` + `configure_social_auth`).
-- `src/start.ts` recebe `attachSupabaseAuth` para anexar bearer token em server fns.
-- Layout protegido `src/routes/_authenticated.tsx` com `beforeLoad` + redirect.
-- Layouts por persona: `_authenticated/brand/`, `_authenticated/creator/`, `_authenticated/fulfillment/`, `_authenticated/admin/` (cada um valida role via `has_role`).
+### Fase 2 — Schema enxuto
+Quatro tabelas (espelhando a spec do usuário):
+- `brands` — campos TikTok (`tiktok_shop_id`, `tiktok_access_token`, `tiktok_refresh_token`, `tiktok_token_expires_at`), `warehouse_address jsonb`.
+- `products` — `tiktok_product_id` unique, `sku`, `price`, `stock`, `image_url`.
+- `orders` — `tiktok_order_id` unique, `customer_*`, `shipping_address jsonb`, `items jsonb` (denormalizado), `status` enum (`pending|processing|shipped|delivered|cancelled`), `tracking_number`, `shipping_label_url`, `must_ship_by`.
+- `sync_logs` — auditoria de chamadas TikTok.
 
-**Entregável:** signup → role → onboarding → dashboard vazio da persona certa.
+RLS: tudo scoped por `brand_id` via `has_role` + match com `auth.uid()`.
 
-## Fase 2 — Schema completo (migrations)
+### Fase 3 — Conexão TikTok + import de produtos
+- Tela `/app/connect-tiktok` com botão "Conectar TikTok Shop".
+- Server fn `connectTikTokShop` — chama gateway, salva tokens em `brands`.
+- Server fn `importProducts` — `GET /api/products/search` via gateway, popula `products`.
+- Server fn `syncStock(productId)` — atualiza estoque local + `POST /api/products/stocks/update`.
+- `pg_cron` diário refresh de tokens próximos do expire.
 
-Traduz todo o schema Prisma para SQL com RLS por tenant. Tabelas:
+### Fase 4 — Dashboard da marca
+Sidebar: Dashboard, Produtos, Pedidos, Configurações.
+- **Dashboard:** cards (pedidos hoje, pendentes, GMV semana, estoque baixo).
+- **Produtos:** tabela com SKU, estoque editável inline, botão "Sync estoque".
+- **Configurações:** endereço do warehouse (origem do frete), reconectar TikTok.
 
-- **Catalog:** `products`, `product_variants`
-- **Inventory:** `inventory`, `inventory_movements`
-- **Creator marketplace:** `creator_applications`, `creator_products`, `creator_campaigns`
-- **Orders:** `orders`, `order_items`, `order_events`
-- **Commissions:** `creator_earnings`
-- **Marketplaces:** `marketplace_connections`, `marketplace_products`, `sync_logs`
-- **Fulfillment:** `fulfillment_tasks`
-- **Analytics:** `daily_analytics`
+### Fase 5 — Webhook de pedidos + lista
+- `src/routes/api/public/webhooks/tiktok.ts` — verifica HMAC com `TIKTOK_WEBHOOK_SECRET`, processa `order.created`, `order.cancelled`.
+- Persiste em `orders` com snapshot completo dos items.
+- Dispara email "Novo pedido" via conector Resend.
+- Tela `/app/orders` — lista paginada, filtros status/data, busca.
+- Tela `/app/orders/$id` — detalhes completos, timeline, endereço, items.
 
-Regras universais: `created_at`/`updated_at`/`deleted_at` (soft delete), índices em FKs + enums + filtros frequentes, RLS via `has_role` + tenant_id matching, snapshots denormalizados em `order_items`.
+### Fase 6 — Etiqueta de envio (Melhor Envio)
+- Secret `MELHOR_ENVIO_TOKEN` (sandbox primeiro).
+- Server fn `calculateShipping(orderId)` — POST `/api/v2/me/shipment/calculate` com origem (warehouse) + destino (order.shipping_address) + dimensões padrão.
+- Server fn `generateLabel(orderId, serviceId)` — fluxo `cart → checkout → generate → print` → URL do PDF salva em `orders.shipping_label_url`.
+- Botão "Gerar Etiqueta" na tela do pedido, modal pra escolher transportadora.
 
-## Fase 3 — Brand Dashboard (CRUD core)
+### Fase 7 — Confirmar envio + tracking
+- Botão "Marcar como enviado" → modal com input de tracking_number + carrier.
+- Server fn `confirmShipment` — atualiza order, chama gateway TikTok `POST /api/fulfillment/rts` com tracking, escreve em `sync_logs`, status vira `shipped`.
+- Email de confirmação ao cliente (opcional, via Resend).
+- `pg_cron` polling fallback diário pra pedidos que possam ter perdido webhook.
 
-- Layout com sidebar (Products, Orders, Creators, Marketplaces, Analytics, Settings).
-- **Products:** lista paginada, criar/editar/arquivar, upload de imagens (Supabase Storage), variantes, SKU único por brand, commission rate override.
-- **Inventory:** view consolidada por warehouse, movimentações manuais, alertas de baixo estoque.
-- **Creator applications:** aprovar/rejeitar candidaturas.
-- **Settings:** dados empresa, default commission rate, subscription tier (mock por enquanto).
+### Fase 8 — Polimento
+- SEO já feito na Fase 0; adicionar OG images nas rotas públicas.
+- Stripe subscription pra brand tiers (Starter/Pro) via `payments--enable_stripe_payments`.
+- Security scan + linter Supabase.
+- Documentação de onboarding TikTok Partner (continua em paralelo).
 
-Tudo via `createServerFn` com `requireSupabaseAuth` + validação Zod.
+## Riscos vs. spec original do usuário
 
-## Fase 4 — Creator Dashboard
+1. **Cálculo de frete:** Melhor Envio é a escolha mais simples no BR. Se a marca quiser Correios direto, exige contrato — fica como upgrade.
+2. **TikTok Partner approval:** o gateway Lovable cobre dev/MVP. Produção real depende de aprovação como Solution Partner (em paralelo).
+3. **Multi-warehouse:** schema permite (jsonb), mas UI inicial assume um endereço só.
+4. **Webhooks vs. polling:** webhooks são primários; `pg_cron` é fallback de segurança.
 
-- Layout mobile-first (creators usam celular), cores roxas.
-- **Browse:** catálogo de produtos de brands aprovadas, filtros por categoria/comissão.
-- **My Products:** produtos que está promovendo, com `affiliate_code` único, métricas (views, clicks, orders, revenue).
-- **Campaigns:** vincular URL/ID de vídeo TikTok a uma campanha; performance trackeada.
-- **Earnings:** widget proeminente — pending / approved / paid, histórico, integração Stripe Connect (onboarding).
-- **Profile:** handles sociais, bio, pix/banco.
+## Detalhes técnicos relevantes
 
-## Fase 5 — Integração TikTok Shop
+```text
+src/
+├── routes/
+│   ├── (public)        ✅ feito na Fase 0
+│   ├── login.tsx, signup.tsx
+│   ├── _authenticated.tsx              # gate
+│   ├── _authenticated/app/
+│   │   ├── index.tsx                   # dashboard
+│   │   ├── products.tsx
+│   │   ├── orders.tsx
+│   │   ├── orders.$id.tsx
+│   │   ├── connect-tiktok.tsx
+│   │   └── settings.tsx
+│   └── api/public/
+│       ├── webhooks/tiktok.ts          # HMAC + insert
+│       └── jobs/refresh-tokens.ts      # pg_cron target
+├── lib/
+│   ├── tiktok.functions.ts             # gateway calls
+│   ├── orders.functions.ts
+│   ├── products.functions.ts
+│   ├── shipping.functions.ts           # Melhor Envio
+│   └── email.functions.ts              # Resend
+```
 
-- Conectar conector **TikTok** do Lovable (gateway abstrai OAuth).
-- Tela em `/brand/marketplaces` para "Connect TikTok Shop".
-- Server fns:
-  - `syncProductToTikTok(productId)` — POST gateway products
-  - `syncInventory(productId)` — update stock
-  - `pollTikTokOrders()` — fallback ao webhook
-- **Webhook handler** em `src/routes/api/public/webhooks/tiktok.ts`:
-  - Verifica assinatura HMAC com `TIKTOK_WEBHOOK_SECRET`
-  - Eventos: `order.created`, `order.cancelled`, `order.refunded`, `product.update`
-  - Persiste em `orders` + `order_events`, enfileira fulfillment task
-- Tabela `marketplace_connections` guarda estado por brand.
-- `sync_logs` para auditoria.
+Secrets necessários: `TIKTOK_WEBHOOK_SECRET`, `MELHOR_ENVIO_TOKEN`, conector TikTok, conector Resend.
 
-Nota importante: o TikTok Partner approval (o doc longo que você compartilhou antes) roda **em paralelo**. Enquanto não aprovado, o gateway do Lovable + conector funciona pra dev/MVP; quando aprovado, troca credenciais.
+## O que preciso de você
 
-## Fase 6 — Fulfillment Dashboard
-
-- Layout kanban: Picking → Packing → Shipping → Done, cores âmbar.
-- Input para scanner (barcode reader) em cada task.
-- Geração de etiqueta de envio (placeholder; integração Correios/Melhor Envio em fase posterior).
-- Atualização de tracking volta pro TikTok via gateway.
-- Server fn `completeFulfillmentTask` faz: marca task done, atualiza `order.status`, envia tracking ao marketplace, dispara webhook interno pra commission engine.
-
-## Fase 7 — Commissions, Analytics, Admin
-
-- **Commission engine:** trigger no Postgres ao mudar `orders.status` para `DELIVERED` → cria `creator_earnings` (PENDING → APPROVED após N dias → PAID via Stripe Connect transfer).
-- **Daily analytics rollup:** `pg_cron` diário chamando `/api/public/jobs/rollup-analytics` (HMAC-protected) que popula `daily_analytics` por brand/creator.
-- **Admin panel:** lista brands/creators, suspende contas, vê GMV global, logs de sync, fila de fulfillment tasks pendentes.
-- Recharts para dashboards (já temos shadcn chart).
-
-## Fase 8 — Pagamentos e polimento
-
-- Stripe Checkout para subscription tiers das brands (`payments--enable_stripe_payments`).
-- Stripe Connect Express para payouts a creators.
-- E-mails transacionais via conector **Resend**: novo pedido, comissão aprovada, payout enviado.
-- SEO completo: sitemap, JSON-LD, og:images por rota.
-- Auditoria de segurança (`security--run_security_scan`) e fix de findings.
-
-## Riscos e mudanças vs. spec original que você precisa aprovar
-
-1. **Sem BullMQ/Redis** — não dá pra rodar workers persistentes em Workers. Substituição: `pg_cron` + endpoints `/api/public/jobs/*` para tarefas agendadas, e processamento síncrono dentro do webhook handler do TikTok (são milissegundos). Para volumes >10k pedidos/dia que a spec menciona, isso pode precisar de fila externa (Inngest tem conector Lovable; vale como upgrade futuro).
-2. **Sem Prisma** — usamos client Supabase tipado. A DX é diferente mas comparável; o tipo é gerado automaticamente das migrations.
-3. **TikTok via gateway Lovable** — abstrai OAuth refresh, mas algumas chamadas raras da API podem não estar mapeadas; cairíamos em fetch direto caso preciso.
-4. **Multi-warehouse e batch tracking** ficam no schema mas a UI inicial assume `warehouse_id = "default"`.
-5. **Realtime subscriptions** (Supabase Realtime) entram só na Fase 6 (kanban de fulfillment).
-
-## Tamanho estimado
-
-Cada fase é 1–3 turnos de implementação. Fase 0 é o que posso fazer agora mesmo enquanto você habilita o Cloud.
-
-## O que preciso de você para começar
-
-1. ✅ Confirmar nome **FulFillly** (com 2 L's mesmo?).
-2. 🔓 **Habilitar Lovable Cloud** antes da Fase 1.
-3. 🎨 Aprovar abordagem de paleta (vermelho TikTok + ciano + accents por persona) ou pedir direções visuais alternativas.
-4. ▶️ Confirmar que devo arrancar pela **Fase 0 (landing pública + marca)** assim que aprovar este plano.
+1. ✅ Confirmar o foco: **só fulfillment de TikTok Shop, sem creators**.
+2. 🇧🇷 **Melhor Envio** como transportadora padrão (vs. Frenet, Kangu, Correios contrato)?
+3. ▶️ Posso começar pela **Fase 1 (Auth)** assim que aprovar?
