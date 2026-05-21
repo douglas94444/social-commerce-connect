@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — FulFillly" },
+      { title: "Preços — FulFillly" },
       {
         name: "description",
         content:
-          "Transparent pricing for brands and creators. Free during private beta. Tiered SaaS plus fulfillment & commission fees.",
+          "Preços transparentes para marcas e criadores. Grátis durante o beta privado. SaaS em planos + taxas de fulfillment e comissão.",
       },
     ],
   }),
@@ -20,38 +20,38 @@ export const Route = createFileRoute("/pricing")({
 const plans = [
   {
     name: "Starter",
-    price: "Free",
-    sub: "during private beta",
-    features: ["Up to 50 SKUs", "1 TikTok Shop", "Basic analytics", "Email support"],
-    cta: "Start free",
+    price: "Grátis",
+    sub: "durante o beta privado",
+    features: ["Até 50 SKUs", "1 TikTok Shop", "Analytics básico", "Suporte por e-mail"],
+    cta: "Começar grátis",
     highlight: false,
   },
   {
     name: "Growth",
     price: "R$ 499",
-    sub: "/ month",
+    sub: "/ mês",
     features: [
-      "Unlimited SKUs",
-      "All marketplaces",
-      "Creator marketplace",
-      "Priority fulfillment",
-      "Stripe Connect payouts",
+      "SKUs ilimitados",
+      "Todos os marketplaces",
+      "Marketplace de criadores",
+      "Fulfillment prioritário",
+      "Repasses via Stripe Connect",
     ],
-    cta: "Talk to sales",
+    cta: "Falar com vendas",
     highlight: true,
   },
   {
     name: "Enterprise",
     price: "Custom",
-    sub: "for scaling brands",
+    sub: "para marcas escalando",
     features: [
-      "Dedicated CSM",
-      "Multi-warehouse",
-      "White-label creator portal",
-      "API access & SLA",
-      "Custom integrations",
+      "CSM dedicado",
+      "Multi-armazém",
+      "Portal de criadores white-label",
+      "Acesso à API e SLA",
+      "Integrações sob medida",
     ],
-    cta: "Contact us",
+    cta: "Fale com a gente",
     highlight: false,
   },
 ];
@@ -62,10 +62,10 @@ function Pricing() {
       <section className="mx-auto max-w-6xl px-6 py-24">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-5xl md:text-6xl">
-            Pricing that <span className="italic text-primary">scales with you.</span>
+            Preços que <span className="italic text-primary">escalam com você.</span>
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Plans for the SaaS layer. Fulfillment and commissions billed per transaction.
+            Planos para a camada SaaS. Fulfillment e comissões cobrados por transação.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ function Pricing() {
             >
               {p.highlight && (
                 <span className="absolute -top-3 left-8 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
-                  Most popular
+                  Mais popular
                 </span>
               )}
               <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">

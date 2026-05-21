@@ -6,23 +6,23 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/for-creators")({
   head: () => ({
     meta: [
-      { title: "For Creators — FulFillly" },
+      { title: "Para Criadores — FulFillly" },
       {
         name: "description",
         content:
-          "Pick products you love, post on TikTok, get paid weekly. Real-time earnings, transparent commissions, no DMs with brands.",
+          "Escolha produtos que você ama, poste no TikTok, receba semanalmente. Ganhos em tempo real, comissões transparentes, sem DM com marcas.",
       },
-      { property: "og:title", content: "For Creators — FulFillly" },
+      { property: "og:title", content: "Para Criadores — FulFillly" },
     ],
   }),
   component: ForCreators,
 });
 
 const perks = [
-  { icon: Sparkles, title: "Curated catalog", body: "Only brands that ship on time." },
-  { icon: Coins, title: "Transparent commissions", body: "See your rate before you post." },
-  { icon: LineChart, title: "Real-time analytics", body: "Per-video, per-product." },
-  { icon: Wallet, title: "Weekly payouts", body: "Pix in BR. Stripe everywhere else." },
+  { icon: Sparkles, title: "Catálogo curado", body: "Só marcas que entregam no prazo." },
+  { icon: Coins, title: "Comissões transparentes", body: "Veja sua taxa antes de postar." },
+  { icon: LineChart, title: "Analytics em tempo real", body: "Por vídeo, por produto." },
+  { icon: Wallet, title: "Pagamentos semanais", body: "Pix no BR. Stripe no resto." },
 ];
 
 function ForCreators() {
@@ -30,18 +30,18 @@ function ForCreators() {
     <SiteShell>
       <section className="mx-auto max-w-5xl px-6 py-24">
         <p className="mb-3 font-mono text-xs uppercase tracking-widest text-creator">
-          For Creators
+          Para Criadores
         </p>
         <h1 className="max-w-3xl text-balance text-5xl md:text-7xl">
-          Post the video. <span className="italic text-creator">Get paid.</span> Skip the chaos.
+          Poste o vídeo. <span className="italic text-creator">Receba.</span> Sem caos.
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          Browse approved brands, claim a product, post your TikTok. We handle the link, the order,
-          the shipping, and your payout. No DMs. No spreadsheets. No waiting.
+          Navegue por marcas aprovadas, pegue um produto, poste seu TikTok. A gente cuida do link,
+          do pedido, do envio e do seu pagamento. Sem DM. Sem planilha. Sem espera.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button size="lg" asChild>
-            <Link to="/signup">Join the waitlist</Link>
+            <Link to="/signup">Entrar na lista de espera</Link>
           </Button>
         </div>
 

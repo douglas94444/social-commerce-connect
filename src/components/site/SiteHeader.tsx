@@ -5,11 +5,11 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 
 const links = [
-  { to: "/for-brands", label: "For Brands" },
-  { to: "/for-creators", label: "For Creators" },
-  { to: "/pricing", label: "Pricing" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
+  { to: "/for-brands", label: "Para Marcas" },
+  { to: "/for-creators", label: "Para Criadores" },
+  { to: "/pricing", label: "Preços" },
+  { to: "/about", label: "Sobre" },
+  { to: "/contact", label: "Contato" },
 ] as const;
 
 export function SiteHeader() {
@@ -35,15 +35,15 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">Log in</Link>
+            <Link to="/login">Entrar</Link>
           </Button>
           <Button size="sm" asChild className="shadow-glow">
-            <Link to="/signup">Start free</Link>
+            <Link to="/signup">Começar grátis</Link>
           </Button>
         </div>
 
         <button
-          aria-label="Toggle menu"
+          aria-label="Abrir menu"
           className="grid h-10 w-10 place-items-center rounded-lg border border-border md:hidden"
           onClick={() => setOpen((v) => !v)}
         >
@@ -66,10 +66,10 @@ export function SiteHeader() {
             ))}
             <div className="mt-2 flex gap-2">
               <Button variant="outline" size="sm" asChild className="flex-1">
-                <Link to="/login">Log in</Link>
+                <Link to="/login">Entrar</Link>
               </Button>
               <Button size="sm" asChild className="flex-1">
-                <Link to="/signup">Start free</Link>
+                <Link to="/signup">Começar grátis</Link>
               </Button>
             </div>
           </div>

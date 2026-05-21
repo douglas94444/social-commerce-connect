@@ -6,45 +6,46 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/for-brands")({
   head: () => ({
     meta: [
-      { title: "For Brands — FulFillly" },
+      { title: "Para Marcas — FulFillly" },
       {
         name: "description",
         content:
-          "Sync your catalog to TikTok Shop, manage inventory, approve creators, and let FulFillly ship every order. Built for brands scaling on social.",
+          "Sincronize seu catálogo com o TikTok Shop, gerencie estoque, aprove criadores e deixe a FulFillly enviar cada pedido. Feito para marcas escalando no social.",
       },
-      { property: "og:title", content: "For Brands — FulFillly" },
+      { property: "og:title", content: "Para Marcas — FulFillly" },
     ],
   }),
   component: ForBrands,
 });
 
 const features = [
-  "Catalog & variant sync across marketplaces",
-  "Multi-warehouse inventory with low-stock alerts",
-  "Creator marketplace with custom commission rates",
-  "Real-time order webhook from TikTok Shop",
-  "Auto-generated shipping labels and tracking",
-  "GMV, AOV, and SLA dashboards",
+  "Sincronização de catálogo e variantes entre marketplaces",
+  "Estoque multi-armazém com alertas de baixo estoque",
+  "Marketplace de criadores com comissões personalizadas",
+  "Webhook de pedidos em tempo real do TikTok Shop",
+  "Etiquetas e rastreio gerados automaticamente",
+  "Dashboards de GMV, ticket médio e SLA",
 ];
 
 function ForBrands() {
   return (
     <SiteShell>
       <section className="mx-auto max-w-5xl px-6 py-24">
-        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-brand">For Brands</p>
+        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-brand">Para Marcas</p>
         <h1 className="max-w-3xl text-balance text-5xl md:text-7xl">
-          Run your social-commerce ops <span className="italic text-primary">on autopilot.</span>
+          Rode sua operação de social commerce <span className="italic text-primary">no piloto automático.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          Upload your catalog once. We push it to TikTok Shop, hold your inventory, route every
-          order to fulfillment, and pay your creators — while you focus on the brand.
+          Suba seu catálogo uma única vez. A gente envia para o TikTok Shop, segura seu estoque,
+          encaminha cada pedido para o fulfillment e paga seus criadores — enquanto você foca na
+          marca.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button size="lg" asChild>
-            <Link to="/signup">Start for free</Link>
+            <Link to="/signup">Começar grátis</Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <Link to="/pricing">See pricing</Link>
+            <Link to="/pricing">Ver preços</Link>
           </Button>
         </div>
 

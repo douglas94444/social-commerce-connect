@@ -3,25 +3,25 @@ import { Logo } from "./Logo";
 
 const cols = [
   {
-    title: "Product",
+    title: "Produto",
     links: [
-      { to: "/for-brands", label: "For Brands" },
-      { to: "/for-creators", label: "For Creators" },
-      { to: "/pricing", label: "Pricing" },
+      { to: "/for-brands", label: "Para Marcas" },
+      { to: "/for-creators", label: "Para Criadores" },
+      { to: "/pricing", label: "Preços" },
     ],
   },
   {
-    title: "Company",
+    title: "Empresa",
     links: [
-      { to: "/about", label: "About" },
-      { to: "/contact", label: "Contact" },
+      { to: "/about", label: "Sobre" },
+      { to: "/contact", label: "Contato" },
     ],
   },
   {
     title: "Legal",
     links: [
-      { to: "/", label: "Privacy" },
-      { to: "/", label: "Terms" },
+      { to: "/", label: "Privacidade" },
+      { to: "/", label: "Termos" },
     ],
   },
 ] as const;
@@ -33,8 +33,8 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm text-muted-foreground">
-            The social-commerce operating system. We power brands, creators, and fulfillment in one
-            tight loop — built for TikTok Shop and beyond.
+            O sistema operacional do social commerce. Conectamos marcas, criadores e fulfillment num
+            só fluxo — feito para o TikTok Shop e além.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export function SiteFooter() {
 
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} FulFillly. Powering social commerce.</p>
+          <p>© {new Date().getFullYear()} FulFillly. Movendo o social commerce.</p>
           <p className="font-mono">v0.1 · MVP</p>
         </div>
       </div>
