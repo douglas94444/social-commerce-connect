@@ -23,6 +23,8 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as AuthenticatedAppProductsRouteImport } from './routes/_authenticated/app.products'
 import { Route as AuthenticatedAppOrdersRouteImport } from './routes/_authenticated/app.orders'
+import { Route as ApiPublicTiktokWebhookRouteImport } from './routes/api/public/tiktok.webhook'
+import { Route as AuthenticatedAppOrdersIdRouteImport } from './routes/_authenticated/app.orders.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -95,6 +97,17 @@ const AuthenticatedAppOrdersRoute = AuthenticatedAppOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const ApiPublicTiktokWebhookRoute = ApiPublicTiktokWebhookRouteImport.update({
+  id: '/api/public/tiktok/webhook',
+  path: '/api/public/tiktok/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppOrdersIdRoute =
+  AuthenticatedAppOrdersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAppOrdersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -106,10 +119,12 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
-  '/app/orders': typeof AuthenticatedAppOrdersRoute
+  '/app/orders': typeof AuthenticatedAppOrdersRouteWithChildren
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
+  '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,10 +135,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
-  '/app/orders': typeof AuthenticatedAppOrdersRoute
+  '/app/orders': typeof AuthenticatedAppOrdersRouteWithChildren
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
+  '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -137,10 +154,12 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
-  '/_authenticated/app/orders': typeof AuthenticatedAppOrdersRoute
+  '/_authenticated/app/orders': typeof AuthenticatedAppOrdersRouteWithChildren
   '/_authenticated/app/products': typeof AuthenticatedAppProductsRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
+  '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,6 +177,8 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/settings'
     | '/app/'
+    | '/app/orders/$id'
+    | '/api/public/tiktok/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +193,8 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/settings'
     | '/app'
+    | '/app/orders/$id'
+    | '/api/public/tiktok/webhook'
   id:
     | '__root__'
     | '/'
@@ -188,6 +211,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products'
     | '/_authenticated/app/settings'
     | '/_authenticated/app/'
+    | '/_authenticated/app/orders/$id'
+    | '/api/public/tiktok/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,6 +225,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicTiktokWebhookRoute: typeof ApiPublicTiktokWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -302,18 +328,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppOrdersRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/public/tiktok/webhook': {
+      id: '/api/public/tiktok/webhook'
+      path: '/api/public/tiktok/webhook'
+      fullPath: '/api/public/tiktok/webhook'
+      preLoaderRoute: typeof ApiPublicTiktokWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/orders/$id': {
+      id: '/_authenticated/app/orders/$id'
+      path: '/$id'
+      fullPath: '/app/orders/$id'
+      preLoaderRoute: typeof AuthenticatedAppOrdersIdRouteImport
+      parentRoute: typeof AuthenticatedAppOrdersRoute
+    }
   }
 }
 
+interface AuthenticatedAppOrdersRouteChildren {
+  AuthenticatedAppOrdersIdRoute: typeof AuthenticatedAppOrdersIdRoute
+}
+
+const AuthenticatedAppOrdersRouteChildren: AuthenticatedAppOrdersRouteChildren =
+  {
+    AuthenticatedAppOrdersIdRoute: AuthenticatedAppOrdersIdRoute,
+  }
+
+const AuthenticatedAppOrdersRouteWithChildren =
+  AuthenticatedAppOrdersRoute._addFileChildren(
+    AuthenticatedAppOrdersRouteChildren,
+  )
+
 interface AuthenticatedAppRouteChildren {
-  AuthenticatedAppOrdersRoute: typeof AuthenticatedAppOrdersRoute
+  AuthenticatedAppOrdersRoute: typeof AuthenticatedAppOrdersRouteWithChildren
   AuthenticatedAppProductsRoute: typeof AuthenticatedAppProductsRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
-  AuthenticatedAppOrdersRoute: AuthenticatedAppOrdersRoute,
+  AuthenticatedAppOrdersRoute: AuthenticatedAppOrdersRouteWithChildren,
   AuthenticatedAppProductsRoute: AuthenticatedAppProductsRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
@@ -344,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ApiPublicTiktokWebhookRoute: ApiPublicTiktokWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
