@@ -20,6 +20,8 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as ApiJobsRefreshTokensRouteImport } from './routes/api/jobs/refresh-tokens'
+import { Route as ApiJobsPollOrdersRouteImport } from './routes/api/jobs/poll-orders'
 import { Route as AuthenticatedAppSetupRouteImport } from './routes/_authenticated/app.setup'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as AuthenticatedAppProductsRouteImport } from './routes/_authenticated/app.products'
@@ -28,6 +30,7 @@ import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authen
 import { Route as ApiPublicTiktokWebhookRouteImport } from './routes/api/public/tiktok.webhook'
 import { Route as AuthenticatedAppSettingsAccountRouteImport } from './routes/_authenticated/app.settings.account'
 import { Route as AuthenticatedAppOrdersIdRouteImport } from './routes/_authenticated/app.orders.$id'
+import { Route as ApiPublicTiktokOauthCallbackRouteImport } from './routes/api/public/tiktok.oauth.callback'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -83,6 +86,16 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const ApiJobsRefreshTokensRoute = ApiJobsRefreshTokensRouteImport.update({
+  id: '/api/jobs/refresh-tokens',
+  path: '/api/jobs/refresh-tokens',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiJobsPollOrdersRoute = ApiJobsPollOrdersRouteImport.update({
+  id: '/api/jobs/poll-orders',
+  path: '/api/jobs/poll-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppSetupRoute = AuthenticatedAppSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
@@ -128,6 +141,12 @@ const AuthenticatedAppOrdersIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAppOrdersRoute,
   } as any)
+const ApiPublicTiktokOauthCallbackRoute =
+  ApiPublicTiktokOauthCallbackRouteImport.update({
+    id: '/api/public/tiktok/oauth/callback',
+    path: '/api/public/tiktok/oauth/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,10 +163,13 @@ export interface FileRoutesByFullPath {
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
   '/app/setup': typeof AuthenticatedAppSetupRoute
+  '/api/jobs/poll-orders': typeof ApiJobsPollOrdersRoute
+  '/api/jobs/refresh-tokens': typeof ApiJobsRefreshTokensRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
   '/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
   '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
+  '/api/public/tiktok/oauth/callback': typeof ApiPublicTiktokOauthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,10 +185,13 @@ export interface FileRoutesByTo {
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
   '/app/setup': typeof AuthenticatedAppSetupRoute
+  '/api/jobs/poll-orders': typeof ApiJobsPollOrdersRoute
+  '/api/jobs/refresh-tokens': typeof ApiJobsRefreshTokensRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
   '/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
   '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
+  '/api/public/tiktok/oauth/callback': typeof ApiPublicTiktokOauthCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,10 +210,13 @@ export interface FileRoutesById {
   '/_authenticated/app/products': typeof AuthenticatedAppProductsRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
   '/_authenticated/app/setup': typeof AuthenticatedAppSetupRoute
+  '/api/jobs/poll-orders': typeof ApiJobsPollOrdersRoute
+  '/api/jobs/refresh-tokens': typeof ApiJobsRefreshTokensRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/orders/$id': typeof AuthenticatedAppOrdersIdRoute
   '/_authenticated/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
   '/api/public/tiktok/webhook': typeof ApiPublicTiktokWebhookRoute
+  '/api/public/tiktok/oauth/callback': typeof ApiPublicTiktokOauthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,10 +235,13 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/settings'
     | '/app/setup'
+    | '/api/jobs/poll-orders'
+    | '/api/jobs/refresh-tokens'
     | '/app/'
     | '/app/orders/$id'
     | '/app/settings/account'
     | '/api/public/tiktok/webhook'
+    | '/api/public/tiktok/oauth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -226,10 +257,13 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/settings'
     | '/app/setup'
+    | '/api/jobs/poll-orders'
+    | '/api/jobs/refresh-tokens'
     | '/app'
     | '/app/orders/$id'
     | '/app/settings/account'
     | '/api/public/tiktok/webhook'
+    | '/api/public/tiktok/oauth/callback'
   id:
     | '__root__'
     | '/'
@@ -247,10 +281,13 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products'
     | '/_authenticated/app/settings'
     | '/_authenticated/app/setup'
+    | '/api/jobs/poll-orders'
+    | '/api/jobs/refresh-tokens'
     | '/_authenticated/app/'
     | '/_authenticated/app/orders/$id'
     | '/_authenticated/app/settings/account'
     | '/api/public/tiktok/webhook'
+    | '/api/public/tiktok/oauth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -263,7 +300,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ApiJobsPollOrdersRoute: typeof ApiJobsPollOrdersRoute
+  ApiJobsRefreshTokensRoute: typeof ApiJobsRefreshTokensRoute
   ApiPublicTiktokWebhookRoute: typeof ApiPublicTiktokWebhookRoute
+  ApiPublicTiktokOauthCallbackRoute: typeof ApiPublicTiktokOauthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -345,6 +385,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/api/jobs/refresh-tokens': {
+      id: '/api/jobs/refresh-tokens'
+      path: '/api/jobs/refresh-tokens'
+      fullPath: '/api/jobs/refresh-tokens'
+      preLoaderRoute: typeof ApiJobsRefreshTokensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/jobs/poll-orders': {
+      id: '/api/jobs/poll-orders'
+      path: '/api/jobs/poll-orders'
+      fullPath: '/api/jobs/poll-orders'
+      preLoaderRoute: typeof ApiJobsPollOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/setup': {
       id: '/_authenticated/app/setup'
       path: '/setup'
@@ -400,6 +454,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/orders/$id'
       preLoaderRoute: typeof AuthenticatedAppOrdersIdRouteImport
       parentRoute: typeof AuthenticatedAppOrdersRoute
+    }
+    '/api/public/tiktok/oauth/callback': {
+      id: '/api/public/tiktok/oauth/callback'
+      path: '/api/public/tiktok/oauth/callback'
+      fullPath: '/api/public/tiktok/oauth/callback'
+      preLoaderRoute: typeof ApiPublicTiktokOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -475,7 +536,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ApiJobsPollOrdersRoute: ApiJobsPollOrdersRoute,
+  ApiJobsRefreshTokensRoute: ApiJobsRefreshTokensRoute,
   ApiPublicTiktokWebhookRoute: ApiPublicTiktokWebhookRoute,
+  ApiPublicTiktokOauthCallbackRoute: ApiPublicTiktokOauthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getOnboardingProgress, isWarehouseComplete } from "@/lib/onboarding";
+import { confirmTikTokShipment } from "@/lib/tiktok.server";
 import { INBOX_STATUSES } from "@/lib/order-status";
 
 const orderListSelect =
@@ -364,6 +365,36 @@ export const markOrderShipped = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => shipSchema.parse(d))
   .handler(async ({ data, context }) => {
+    const { data: order, error: fetchErr } = await context.supabase
+      .from("orders")
+      .select("id, brand_id, tiktok_order_id, brands!inner(user_id, tiktok_shop_id)")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (fetchErr || !order) throw new Error("Pedido não encontrado");
+
+    const brand = order.brands as { user_id: string; tiktok_shop_id: string | null };
+    if (brand.user_id !== context.userId) throw new Error("Pedido não encontrado");
+
+    let tiktokSynced = false;
+    let syncMessage = `Enviado via ${data.carrier} — rastreio ${data.tracking_code}.`;
+
+    if (brand.tiktok_shop_id && order.tiktok_order_id) {
+      try {
+        await confirmTikTokShipment({
+          brandId: order.brand_id,
+          tiktokOrderId: order.tiktok_order_id,
+          trackingNumber: data.tracking_code,
+          carrier: data.carrier,
+        });
+        tiktokSynced = true;
+        syncMessage += " Sincronizado com TikTok Shop (RTS).";
+      } catch (err) {
+        syncMessage += ` TikTok: ${err instanceof Error ? err.message : "falha na sincronização"}.`;
+      }
+    } else {
+      syncMessage += " TikTok não conectado — apenas registro local.";
+    }
+
     const { error } = await context.supabase.from("orders").update({
       status: "shipped",
       carrier: data.carrier,
@@ -372,62 +403,12 @@ export const markOrderShipped = createServerFn({ method: "POST" })
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
 
-    const { data: order } = await context.supabase
-      .from("orders")
-      .select("brand_id")
-      .eq("id", data.id)
-      .maybeSingle();
-
     await context.supabase.from("sync_logs").insert({
-      brand_id: order?.brand_id ?? null,
+      brand_id: order.brand_id,
       order_id: data.id,
       type: "tiktok_rts",
-      status: "pending",
-      message: `Enviado localmente via ${data.carrier} — rastreio ${data.tracking_code}. Sincronização com TikTok pendente.`,
+      status: tiktokSynced ? "success" : "pending",
+      message: syncMessage,
     });
-    return { ok: true, tiktokSynced: false };
-  });
-
-// ---------- Label (Melhor Envio placeholder) ----------
-
-export const generateLabel = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { data: brand } = await context.supabase
-      .from("brands")
-      .select("warehouse_address")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (!isWarehouseComplete(brand?.warehouse_address)) {
-      throw new Error("Configure o endereço do armazém em Configurações antes de gerar etiquetas.");
-    }
-
-    const token = process.env.MELHOR_ENVIO_TOKEN;
-    if (!token) {
-      throw new Error(
-        "Integração com Melhor Envio ainda não configurada. Adicione MELHOR_ENVIO_TOKEN nas configurações.",
-      );
-    }
-    // Stub: produção real exigiria cotar + comprar + imprimir via API Melhor Envio.
-    const { data: order } = await context.supabase
-      .from("orders")
-      .select("brand_id")
-      .eq("id", data.id)
-      .maybeSingle();
-
-    const { error } = await context.supabase.from("orders").update({
-      status: "label_generated",
-      shipping_label_url: `https://melhorenvio.example/label/${data.id}.pdf`,
-    }).eq("id", data.id);
-    if (error) throw new Error(error.message);
-
-    await context.supabase.from("sync_logs").insert({
-      brand_id: order?.brand_id ?? null,
-      order_id: data.id,
-      type: "melhor_envio_label",
-      status: "success",
-      message: "Etiqueta gerada (sandbox)",
-    });
-    return { ok: true };
+    return { ok: true, tiktokSynced };
   });

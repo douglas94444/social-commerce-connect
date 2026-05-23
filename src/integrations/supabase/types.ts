@@ -22,6 +22,7 @@ export type Database = {
           name: string
           tiktok_access_token: string | null
           tiktok_refresh_token: string | null
+          tiktok_shop_cipher: string | null
           tiktok_shop_id: string | null
           tiktok_token_expires_at: string | null
           updated_at: string
@@ -35,6 +36,7 @@ export type Database = {
           name?: string
           tiktok_access_token?: string | null
           tiktok_refresh_token?: string | null
+          tiktok_shop_cipher?: string | null
           tiktok_shop_id?: string | null
           tiktok_token_expires_at?: string | null
           updated_at?: string
@@ -48,6 +50,7 @@ export type Database = {
           name?: string
           tiktok_access_token?: string | null
           tiktok_refresh_token?: string | null
+          tiktok_shop_cipher?: string | null
           tiktok_shop_id?: string | null
           tiktok_token_expires_at?: string | null
           updated_at?: string

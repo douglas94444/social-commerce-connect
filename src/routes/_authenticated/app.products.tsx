@@ -14,7 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Pencil, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, Download, RefreshCw } from "lucide-react";
+import { syncTikTokStock } from "@/lib/tiktok.functions";
 import { toast } from "sonner";
 import {
   deleteProduct,
@@ -22,6 +23,7 @@ import {
   updateProductStock,
   upsertProduct,
 } from "@/lib/fulfillment.functions";
+import { importTikTokProducts } from "@/lib/tiktok.functions";
 
 export const Route = createFileRoute("/_authenticated/app/products")({
   head: () => ({ meta: [{ title: "Catálogo — FulFillly" }] }),
@@ -34,7 +36,18 @@ function CatalogPage() {
   const fetchProducts = useServerFn(listProducts);
   const removeFn = useServerFn(deleteProduct);
   const stockFn = useServerFn(updateProductStock);
+  const importFn = useServerFn(importTikTokProducts);
+  const syncStockFn = useServerFn(syncTikTokStock);
   const qc = useQueryClient();
+
+  const importCatalog = useMutation({
+    mutationFn: () => importFn(),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast.success(`${r.imported} produto(s) importados do TikTok.`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: () => fetchProducts(),
@@ -48,6 +61,15 @@ function CatalogPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products"] });
       toast.success("Produto removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const syncStock = useMutation({
+    mutationFn: (id: string) => syncStockFn({ data: { productId: id } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Estoque enviado ao TikTok Shop");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -71,10 +93,13 @@ function CatalogPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/app/setup">
-              <Download className="mr-2 h-4 w-4" /> Importar do TikTok
-            </Link>
+          <Button
+            variant="outline"
+            onClick={() => importCatalog.mutate()}
+            disabled={importCatalog.isPending}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {importCatalog.isPending ? "Importando…" : "Importar do TikTok"}
           </Button>
           <Dialog
             open={open}
@@ -164,6 +189,17 @@ function CatalogPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
+                      {p.tiktok_product_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Sincronizar estoque com TikTok"
+                          disabled={syncStock.isPending}
+                          onClick={() => syncStock.mutate(p.id)}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"

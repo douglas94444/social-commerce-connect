@@ -133,7 +133,7 @@ function HeroVisual() {
 }
 
 function Marquee() {
-  const items = ["TikTok Shop", "Melhor Envio", "Supabase", "Webhooks", "Resend", "Cloudflare"];
+  const items = ["TikTok Shop", "Melhor Envio", "Supabase", "Webhooks", "Cloudflare"];
   return (
     <section className="border-y border-border bg-muted/30 py-6">
       <div className="mx-auto flex max-w-7xl items-center gap-12 overflow-hidden px-6 text-sm text-muted-foreground">

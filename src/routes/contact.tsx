@@ -29,8 +29,8 @@ function Contact() {
             Bora <span className="italic text-primary">conversar.</span>
           </h1>
           <p className="mt-6 text-muted-foreground">
-            Seja você uma marca pronta para escalar, um criador atrás de melhores deals ou um
-            parceiro de fulfillment — queremos ouvir você.
+            Marca no TikTok Shop com dúvidas sobre fulfillment, integração ou parceria? Escreva para
+            nós.
           </p>
 
           <div className="mt-10 space-y-4">
@@ -49,14 +49,18 @@ function Contact() {
           className="rounded-3xl border border-border bg-card p-8 shadow-card"
           onSubmit={(e) => {
             e.preventDefault();
-            // A fase 1 conectará isto a uma server function / Resend.
-            alert("Valeu! Entraremos em contato.");
+            const fd = new FormData(e.currentTarget);
+            const subject = encodeURIComponent("Contato FulFillly");
+            const body = encodeURIComponent(
+              `Nome: ${fd.get("name")}\nEmpresa: ${fd.get("company")}\n\n${fd.get("message")}`,
+            );
+            window.location.href = `mailto:hello@fulfillly.com?subject=${subject}&body=${body}`;
           }}
         >
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Nome</Label>
-              <Input id="name" required placeholder="João da Silva" className="mt-1.5" />
+              <Input id="name" name="name" required placeholder="João da Silva" className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="email">E-mail</Label>
@@ -64,11 +68,18 @@ function Contact() {
             </div>
             <div>
               <Label htmlFor="company">Empresa / @</Label>
-              <Input id="company" placeholder="@suamarca" className="mt-1.5" />
+              <Input id="company" name="company" placeholder="@suamarca" className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="message">Mensagem</Label>
-              <Textarea id="message" rows={5} required placeholder="Conta o que você está construindo…" className="mt-1.5" />
+              <Textarea
+                id="message"
+                name="message"
+                rows={5}
+                required
+                placeholder="Conta o que você está construindo…"
+                className="mt-1.5"
+              />
             </div>
             <Button type="submit" size="lg" className="w-full shadow-glow">
               Enviar mensagem

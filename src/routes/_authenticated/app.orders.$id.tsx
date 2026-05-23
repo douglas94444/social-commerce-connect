@@ -21,12 +21,12 @@ import {
 import { ArrowLeft, Check, Circle, FileText, Truck } from "lucide-react";
 import { toast } from "sonner";
 import {
-  generateLabel,
   getMyBrand,
   getOrder,
   getOrderTimeline,
   markOrderShipped,
 } from "@/lib/fulfillment.functions";
+import { calculateShipping, generateLabel } from "@/lib/shipping.functions";
 import { ORDER_STATUS_LABELS } from "@/lib/order-status";
 import { isWarehouseComplete } from "@/lib/onboarding";
 
@@ -42,9 +42,12 @@ function OrderDetail() {
   const fetchOrder = useServerFn(getOrder);
   const fetchBrand = useServerFn(getMyBrand);
   const fetchTimeline = useServerFn(getOrderTimeline);
+  const quoteFn = useServerFn(calculateShipping);
   const labelFn = useServerFn(generateLabel);
   const shipFn = useServerFn(markOrderShipped);
   const qc = useQueryClient();
+  const [quotes, setQuotes] = useState<Array<{ id: number; name: string; price: string; deliveryDays: number }>>([]);
+  const [quoteOpen, setQuoteOpen] = useState(false);
   const { data: order } = useQuery({ queryKey: ["order", id], queryFn: () => fetchOrder({ data: { id } }) });
   const { data: brand } = useQuery({ queryKey: ["my-brand"], queryFn: () => fetchBrand() });
   const { data: timeline = [] } = useQuery({
@@ -54,9 +57,19 @@ function OrderDetail() {
   const [carrier, setCarrier] = useState("Correios");
   const [tracking, setTracking] = useState("");
 
+  const quote = useMutation({
+    mutationFn: () => quoteFn({ data: { orderId: id } }),
+    onSuccess: (list) => {
+      setQuotes(list);
+      setQuoteOpen(true);
+      if (!list.length) toast.error("Nenhuma cotação disponível para este pedido.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const label = useMutation({
-    mutationFn: () => labelFn({ data: { id } }),
+    mutationFn: (serviceId: number) => labelFn({ data: { orderId: id, serviceId } }),
     onSuccess: () => {
+      setQuoteOpen(false);
       toast.success("Etiqueta gerada");
       qc.invalidateQueries({ queryKey: ["order", id] });
       qc.invalidateQueries({ queryKey: ["order-timeline", id] });
@@ -65,8 +78,12 @@ function OrderDetail() {
   });
   const ship = useMutation({
     mutationFn: () => shipFn({ data: { id, carrier, tracking_code: tracking } }),
-    onSuccess: () => {
-      toast.success("Pedido marcado como enviado localmente. Sincronização com TikTok pendente.");
+    onSuccess: (res) => {
+      toast.success(
+        res.tiktokSynced
+          ? "Pedido enviado e sincronizado com o TikTok Shop."
+          : "Pedido marcado como enviado. Verifique a sincronização com o TikTok.",
+      );
       qc.invalidateQueries({ queryKey: ["order", id] });
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["order-timeline", id] });
@@ -140,13 +157,39 @@ function OrderDetail() {
                   <FileText className="mr-2 h-4 w-4" /> Baixar etiqueta
                 </a>
               ) : (
-                <Button
-                  onClick={() => label.mutate()}
-                  disabled={label.isPending || !warehouseOk || isShipped}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {label.isPending ? "Gerando…" : "Gerar etiqueta"}
-                </Button>
+                <>
+                  <Button
+                    onClick={() => quote.mutate()}
+                    disabled={quote.isPending || label.isPending || !warehouseOk || isShipped}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    {quote.isPending ? "Cotando…" : "Cotar e gerar etiqueta"}
+                  </Button>
+                  {quoteOpen && quotes.length > 0 && (
+                    <div className="mt-3 space-y-2 rounded-md border border-border p-3">
+                      <p className="text-xs font-medium text-muted-foreground">Escolha o frete</p>
+                      {quotes.map((q) => (
+                        <button
+                          key={q.id}
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted/50"
+                          onClick={() => label.mutate(q.id)}
+                          disabled={label.isPending}
+                        >
+                          <span>
+                            {q.name} · {q.deliveryDays} dia(s)
+                          </span>
+                          <span className="font-medium">
+                            {new Intl.NumberFormat("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            }).format(Number(q.price))}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </li>

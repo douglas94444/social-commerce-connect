@@ -146,8 +146,8 @@ function SettingsPage() {
       <Card className="p-6">
         <h2 className="font-display text-lg">Notificações</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          E-mail de novo pedido (Resend) será ativado em breve. Pedidos novos já aparecem na fila em
-          tempo real no painel.
+          Novos pedidos aparecem na fila em tempo real no painel (Supabase Realtime). Não enviamos
+          e-mail nesta versão.
         </p>
       </Card>
     </div>
